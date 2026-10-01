@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "858348802048",
+    "project_id": "grogon-68f51",
+    "storage_bucket": "grogon-68f51.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:858348802048:android:0b13e0c5e8a950bddcc8e5",
+        "android_client_info": {
+          "package_name": "com.grogon.grogon"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCuHZsLbmeCoc3UfqaOG7vMEbpXkbnRJzo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
