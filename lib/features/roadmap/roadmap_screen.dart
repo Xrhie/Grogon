@@ -27,6 +27,47 @@ const _dkNodes = [
   'dk_b5_n1', 'dk_b5_n2', 'dk_b5_n3', 'dk_b5_n4', 'dk_b5_n5',
 ];
 
+// Daftar seluruh node Logika & Algoritma
+// dalam urutan linear
+const _laNodes = [
+  // BAB 1
+  'la_b1_n1', 'la_b1_n2', 'la_b1_n3', 'la_b1_n4', 'la_b1_n5',
+  // BAB 2
+  'la_b2_n1', 'la_b2_n2', 'la_b2_n3', 'la_b2_n4', 'la_b2_n5',
+  // BAB 3
+  'la_b3_n1', 'la_b3_n2', 'la_b3_n3', 'la_b3_n4', 'la_b3_n5',
+  // BAB 4
+  'la_b4_n1', 'la_b4_n2', 'la_b4_n3', 'la_b4_n4', 'la_b4_n5',
+  // BAB 5
+  'la_b5_n1', 'la_b5_n2', 'la_b5_n3', 'la_b5_n4', 'la_b5_n5',
+];
+
+const _pmNodes = [
+  // BAB 1: PENGENALAN PEMROGRAMAN
+  'pm_b1_n1', 'pm_b1_n2', 'pm_b1_n3', 'pm_b1_n4', 'pm_b1_n5',
+  // BAB 2: VARIABEL DAN TIPE DATA
+  'pm_b2_n1', 'pm_b2_n2', 'pm_b2_n3', 'pm_b2_n4', 'pm_b2_n5',
+  // BAB 3: STRUKTUR KONTROL PROGRAM
+  'pm_b3_n1', 'pm_b3_n2', 'pm_b3_n3', 'pm_b3_n4', 'pm_b3_n5',
+  // BAB 4: FUNGSI DAN STRUKTUR DATA
+  'pm_b4_n1', 'pm_b4_n2', 'pm_b4_n3', 'pm_b4_n4', 'pm_b4_n5',
+  // BAB 5: MEMBANGUN PROGRAM SEDERHANA
+  'pm_b5_n1', 'pm_b5_n2', 'pm_b5_n3', 'pm_b5_n4', 'pm_b5_n5',
+];
+
+const _pplgNodes = [
+  // BAB 1: DASAR PENGEMBANGAN PERANGKAT LUNAK DAN GIM
+  'pplg_b1_n1', 'pplg_b1_n2', 'pplg_b1_n3', 'pplg_b1_n4', 'pplg_b1_n5',
+  // BAB 2: ANALISIS DAN PERANCANGAN SISTEM
+  'pplg_b2_n1', 'pplg_b2_n2', 'pplg_b2_n3', 'pplg_b2_n4', 'pplg_b2_n5',
+  // BAB 3: PROSES PENGEMBANGAN PERANGKAT LUNAK
+  'pplg_b3_n1', 'pplg_b3_n2', 'pplg_b3_n3', 'pplg_b3_n4', 'pplg_b3_n5',
+  // BAB 4: PENGUJIAN DAN PENGELOLAAN KODE
+  'pplg_b4_n1', 'pplg_b4_n2', 'pplg_b4_n3', 'pplg_b4_n4', 'pplg_b4_n5',
+  // BAB 5: DEPLOYMENT DAN PEMELIHARAAN
+  'pplg_b5_n1', 'pplg_b5_n2', 'pplg_b5_n3', 'pplg_b5_n4', 'pplg_b5_n5',
+];
+
 class RoadmapScreen extends StatefulWidget {
   final String title;
   final String categoryId;
@@ -52,17 +93,18 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     _loadProgress();
   }
 
-  // Dipanggil ulang setiap kali pengguna kembali dari ResultScreen
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
 
   Future<void> _loadProgress() async {
     if (!mounted) return;
     setState(() => _loading = true);
 
-    final nodeIds = widget.categoryId == 'dasar_komputer' ? _dkNodes : <String>[];
+    final nodeIds = switch (widget.categoryId) {
+      'dasar_komputer' => _dkNodes,
+      'logika_algoritma' => _laNodes,
+      'pemrograman' => _pmNodes,
+      'pplg' => _pplgNodes,
+      _ => <String>[],
+    };
     final map = await ProgressService.getStarsForNodes(widget.categoryId, nodeIds);
 
     if (mounted) {
@@ -81,28 +123,44 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
   ///   - Node N selesai (completed) jika node itu sendiri mendapat ≥ 1 bintang.
   ///   - Semua node terbuka (current) jika debug mode aktif.
   NodeState _nodeState(String nodeId) {
-    if (kDebugMode && _kDebugUnlockAllNodes) return NodeState.current;
+    if (kDebugMode && _kDebugUnlockAllNodes) {
+      return NodeState.current;
+    }
 
     final stars = _starsMap[nodeId] ?? 0;
 
     // Node sudah diselesaikan (punya bintang)
-    if (stars > 0) return NodeState.completed;
+    if (stars > 0) {
+      return NodeState.completed;
+    }
+
+    // Tentukan daftar node berdasarkan kategori
+    final nodes = switch (widget.categoryId) {
+      'dasar_komputer' => _dkNodes,
+      'logika_algoritma' => _laNodes,
+      'pemrograman' => _pmNodes,
+      'pplg' => _pplgNodes,
+      _ => <String>[],
+    };
 
     // Node pertama selalu terbuka
-    if (nodeId == 'dk_b1_n1') return NodeState.current;
+    if (nodes.isNotEmpty && nodeId == nodes.first) {
+      return NodeState.current;
+    }
 
     // Cek apakah node sebelumnya mendapat 3 bintang
-    if (widget.categoryId == 'dasar_komputer') {
-      final idx = _dkNodes.indexOf(nodeId);
-      if (idx > 0) {
-        final prevStars = _starsMap[_dkNodes[idx - 1]] ?? 0;
-        if (prevStars == 3) return NodeState.current;
+    final idx = nodes.indexOf(nodeId);
+
+    if (idx > 0) {
+      final prevStars = _starsMap[nodes[idx - 1]] ?? 0;
+
+      if (prevStars == 3) {
+        return NodeState.current;
       }
     }
 
     return NodeState.locked;
   }
-
   // ─── Helpers teks ─────────────────────────────────────────────────────────
   String _getChapterTitleForNode(String nodeId) {
     if (nodeId.startsWith('dk_b1')) return 'BAB 1: SEJARAH KOMPUTER';
@@ -111,6 +169,11 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     if (nodeId.startsWith('dk_b4')) return 'BAB 4: SISTEM BILANGAN';
     if (nodeId.startsWith('dk_b5')) return 'BAB 5: SISTEM OPERASI';
     if (nodeId.startsWith('la_b1')) return 'BAB 1: PENGENALAN LOGIKA';
+    if (nodeId.startsWith('pplg_b1')) return 'BAB 1: DASAR PENGEMBANGAN PERANGKAT LUNAK DAN GIM';
+    if (nodeId.startsWith('pplg_b2')) return 'BAB 2: ANALISIS DAN PERANCANGAN SISTEM';
+    if (nodeId.startsWith('pplg_b3')) return 'BAB 3: PROSES PENGEMBANGAN PERANGKAT LUNAK';
+    if (nodeId.startsWith('pplg_b4')) return 'BAB 4: PENGUJIAN DAN PENGELOLAAN KODE';
+    if (nodeId.startsWith('pplg_b5')) return 'BAB 5: DEPLOYMENT DAN PEMELIHARAAN';
     return 'BAB 1: DASAR-DASAR';
   }
 
@@ -253,6 +316,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
   }
 
   List<Widget> _buildRoadmapContent() {
+    // ROADMAP DASAR KOMPUTER
     if (widget.categoryId == 'dasar_komputer') {
       return [
         _buildChapterHeader('BAB 1: SEJARAH KOMPUTER'),
@@ -301,15 +365,199 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
       ];
     }
 
-    // Default / kategori lain
+    // ROADMAP LOGIKA DAN ALGORITMA
+    if (widget.categoryId == 'logika_algoritma') {
+      return [
+        _buildChapterHeader('BAB 1: DASAR LOGIKA DAN ALGORITMA'),
+        const SizedBox(height: 30),
+        _buildNode(id: 'la_b1_n1', title: 'Logika Dasar', offsetX: 0),
+        _buildNode(id: 'la_b1_n2', title: 'Pernyataan Logika', offsetX: -60),
+        _buildNode(id: 'la_b1_n3', title: 'Operator Logika', offsetX: 60),
+        _buildNode(id: 'la_b1_n4', title: 'Konsep Algoritma', offsetX: -60),
+        _buildNode(id: 'la_b1_n5', title: 'Urutan Algoritma', offsetX: 0),
+
+        const SizedBox(height: 20),
+        _buildChapterHeader('BAB 2: FLOWCHART DAN PSEUDOCODE'),
+        const SizedBox(height: 30),
+        _buildNode(id: 'la_b2_n1', title: 'Pengertian Flowchart', offsetX: 0),
+        _buildNode(id: 'la_b2_n2', title: 'Simbol Flowchart', offsetX: -60),
+        _buildNode(id: 'la_b2_n3', title: 'Struktur Flowchart', offsetX: 60),
+        _buildNode(id: 'la_b2_n4', title: 'Dasar Pseudocode', offsetX: -60),
+        _buildNode(id: 'la_b2_n5', title: 'Menyusun Algoritma', offsetX: 0),
+
+        const SizedBox(height: 20),
+        _buildChapterHeader('BAB 3: VARIABEL DAN TIPE DATA'),
+        const SizedBox(height: 30),
+        _buildNode(id: 'la_b3_n1', title: 'Pengertian Variabel', offsetX: 0),
+        _buildNode(id: 'la_b3_n2', title: 'Tipe Data', offsetX: -60),
+        _buildNode(id: 'la_b3_n3', title: 'Konstanta', offsetX: 60),
+        _buildNode(id: 'la_b3_n4', title: 'Operator Aritmatika', offsetX: -60),
+        _buildNode(id: 'la_b3_n5', title: 'Input dan Output', offsetX: 0),
+
+        const SizedBox(height: 20),
+        _buildChapterHeader('BAB 4: PERCABANGAN DAN PERULANGAN'),
+        const SizedBox(height: 30),
+        _buildNode(id: 'la_b4_n1', title: 'Percabangan IF', offsetX: 0),
+        _buildNode(id: 'la_b4_n2', title: 'IF-ELSE', offsetX: -60),
+        _buildNode(id: 'la_b4_n3', title: 'Nested IF', offsetX: 60),
+        _buildNode(id: 'la_b4_n4', title: 'Perulangan FOR', offsetX: -60),
+        _buildNode(id: 'la_b4_n5', title: 'Perulangan WHILE', offsetX: 0),
+
+        const SizedBox(height: 20),
+        _buildChapterHeader('BAB 5: PEMECAHAN MASALAH'),
+        const SizedBox(height: 30),
+        _buildNode(id: 'la_b5_n1', title: 'Analisis Masalah', offsetX: 0),
+        _buildNode(id: 'la_b5_n2', title: 'Menyusun Solusi', offsetX: -60),
+        _buildNode(id: 'la_b5_n3', title: 'Menelusuri Algoritma', offsetX: 60),
+        _buildNode(id: 'la_b5_n4', title: 'Menguji Algoritma', offsetX: -60),
+        _buildNode(id: 'la_b5_n5', title: 'Tantangan Algoritma', offsetX: 0),
+      ];
+    }
+    
+    // ROADMAP PEMROGRAMAN
+    if (widget.categoryId == 'pemrograman') {
+      return [
+        // BAB 1: PENGENALAN PEMROGRAMAN
+        _buildChapterHeader('BAB 1: PENGENALAN PEMROGRAMAN'),
+        const SizedBox(height: 30),
+
+        _buildNode(id: 'pm_b1_n1', title: 'Pengatar Pemrograman', offsetX: 0),
+        _buildNode(id: 'pm_b1_n2', title: 'Bahasa Pemrograman', offsetX: -60),
+        _buildNode(id: 'pm_b1_n3', title: 'Kode dan Sintaks', offsetX: 60),
+        _buildNode(id: 'pm_b1_n4', title: 'Cara Kerja Program', offsetX: -60),
+        _buildNode(id: 'pm_b1_n5', title: 'Compiler dan Interpreter', offsetX: 0),
+
+        const SizedBox(height: 20),
+
+        // BAB 2: VARIABEL DAN TIPE DATA
+        _buildChapterHeader('BAB 2: VARIABEL DAN TIPE DATA'),
+        const SizedBox(height: 30),
+
+        _buildNode(id: 'pm_b2_n1', title: 'Variabel dan Konstanta', offsetX: 0),
+        _buildNode(id: 'pm_b2_n2', title: 'Tipe Data Dasar', offsetX: -60),
+        _buildNode(id: 'pm_b2_n3', title: 'Deklarasi Variabel', offsetX: 60),
+        _buildNode(id: 'pm_b2_n4', title: 'Operator Aritmatika', offsetX: -60),
+        _buildNode(id: 'pm_b2_n5', title: 'Operator dan Ekspresi', offsetX: 0),
+
+        const SizedBox(height: 20),
+
+        // BAB 3: STRUKTUR KONTROL PROGRAM
+        _buildChapterHeader('BAB 3: STRUKTUR KONTROL PROGRAM'),
+        const SizedBox(height: 30),
+
+        _buildNode(id: 'pm_b3_n1', title: 'Percabangan IF', offsetX: 0),
+        _buildNode(id: 'pm_b3_n2', title: 'Percabangan IF-ELSE', offsetX: -60),
+        _buildNode(id: 'pm_b3_n3', title: 'IF-ELSE IF', offsetX: 60),
+        _buildNode(id: 'pm_b3_n4', title: 'Perulangan FOR dan WHILE', offsetX: -60),
+        _buildNode(id: 'pm_b3_n5', title: 'BREAK dan CONTINUE', offsetX: 0),
+
+        const SizedBox(height: 20),
+
+        // BAB 4: FUNGSI DAN STRUKTUR DATA
+        _buildChapterHeader('BAB 4: FUNGSI DAN STRUKTUR DATA'),
+        const SizedBox(height: 30),
+
+        _buildNode(id: 'pm_b4_n1', title: 'Mengenal Fungsi', offsetX: 0),
+        _buildNode(id: 'pm_b4_n2', title: 'Parameter dan Argumen', offsetX: -60),
+        _buildNode(id: 'pm_b4_n3', title: 'Nilai Kembalian', offsetX: 60),
+        _buildNode(id: 'pm_b4_n4', title: 'Array dan List', offsetX: -60),
+        _buildNode(id: 'pm_b4_n5', title: 'Pengolahan String', offsetX: 0),
+
+        const SizedBox(height: 20),
+
+        // BAB 5: MEMBANGUN PROGRAM SEDERHANA
+        _buildChapterHeader('BAB 5: MEMBANGUN PROGRAM SEDERHANA'),
+        const SizedBox(height: 30),
+
+        _buildNode(id: 'pm_b5_n1', title: 'Input dari Pengguna', offsetX: 0),
+        _buildNode(id: 'pm_b5_n2', title: 'Menampilkan Output', offsetX: -60),
+        _buildNode(id: 'pm_b5_n3', title: 'Mengolah Data Pengguna', offsetX: 60),
+        _buildNode(id: 'pm_b5_n4', title: 'Program Kalkulator', offsetX: -60),
+        _buildNode(id: 'pm_b5_n5', title: 'Proyek Program Sederhana', offsetX: 0),
+      ];
+    }
+
+    // ROADMAP PPLG
+    if (widget.categoryId == 'pplg') {
+      return [
+        // BAB 1: DASAR PENGEMBANGAN PERANGKAT LUNAK DAN GIM
+        _buildChapterHeader(
+          'BAB 1: DASAR PENGEMBANGAN PERANGKAT LUNAK DAN GIM',
+        ),
+        const SizedBox(height: 30),
+
+        _buildNode(id: 'pplg_b1_n1', title: 'Pengantar PPLG', offsetX: 0),
+        _buildNode(id: 'pplg_b1_n2', title: 'Jenis Perangkat Lunak', offsetX: -60),
+        _buildNode(id: 'pplg_b1_n3', title: 'Jenis dan Platform Gim', offsetX: 60),
+        _buildNode(id: 'pplg_b1_n4', title: 'Profesi Bidang PPLG', offsetX: -60),
+        _buildNode(id: 'pplg_b1_n5', title: 'Ekosistem Industri Digital', offsetX: 0),
+
+        const SizedBox(height: 20),
+
+        // BAB 2: ANALISIS DAN PERANCANGAN SISTEM
+        _buildChapterHeader('BAB 2: ANALISIS DAN PERANCANGAN SISTEM'),
+        const SizedBox(height: 30),
+
+        _buildNode(id: 'pplg_b2_n1', title: 'Analisis Kebutuhan', offsetX: 0),
+        _buildNode(id: 'pplg_b2_n2', title: 'Identifikasi Masalah', offsetX: -60),
+        _buildNode(id: 'pplg_b2_n3', title: 'Perancangan Sistem', offsetX: 60),
+        _buildNode(id: 'pplg_b2_n4', title: 'Pemodelan Sistem', offsetX: -60),
+        _buildNode(id: 'pplg_b2_n5', title: 'Desain UI/UX', offsetX: 0),
+
+        const SizedBox(height: 20),
+
+        // BAB 3: PROSES PENGEMBANGAN PERANGKAT LUNAK
+        _buildChapterHeader('BAB 3: PROSES PENGEMBANGAN PERANGKAT LUNAK'),
+        const SizedBox(height: 30),
+
+        _buildNode(id: 'pplg_b3_n1', title: 'Tahapan Pengembangan', offsetX: 0),
+        _buildNode(id: 'pplg_b3_n2', title: 'Model Waterfall', offsetX: -60),
+        _buildNode(id: 'pplg_b3_n3', title: 'Metode Agile', offsetX: 60),
+        _buildNode(id: 'pplg_b3_n4', title: 'Pengembangan Berbasis Tim', offsetX: -60),
+        _buildNode(id: 'pplg_b3_n5', title: 'Integrasi Sistem', offsetX: 0),
+
+        const SizedBox(height: 20),
+
+        // BAB 4: PENGUJIAN DAN PENGELOLAAN KODE
+        _buildChapterHeader('BAB 4: PENGUJIAN DAN PENGELOLAAN KODE'),
+        const SizedBox(height: 30),
+
+        _buildNode(id: 'pplg_b4_n1', title: 'Dasar Pengujian Perangkat Lunak', offsetX: 0),
+        _buildNode(id: 'pplg_b4_n2', title: 'Identifikasi dan Debugging', offsetX: -60),
+        _buildNode(id: 'pplg_b4_n3', title: 'Teknik Software Testing', offsetX: 60),
+        _buildNode(id: 'pplg_b4_n4', title: 'Version Control dengan Git', offsetX: -60),
+        _buildNode(id: 'pplg_b4_n5', title: 'Kolaborasi GitHub', offsetX: 0),
+
+        const SizedBox(height: 20),
+
+        // BAB 5: DEPLOYMENT DAN PEMELIHARAAN
+        _buildChapterHeader('BAB 5: DEPLOYMENT DAN PEMELIHARAAN'),
+        const SizedBox(height: 30),
+
+        _buildNode(id: 'pplg_b5_n1', title: 'Build dan Deployment', offsetX: 0),
+        _buildNode(id: 'pplg_b5_n2', title: 'Hosting dan Publikasi', offsetX: -60),
+        _buildNode(id: 'pplg_b5_n3', title: 'Keamanan Aplikasi', offsetX: 60),
+        _buildNode(id: 'pplg_b5_n4', title: 'Pemeliharaan Perangkat Lunak', offsetX: -60),
+        _buildNode(id: 'pplg_b5_n5', title: 'Proyek Akhir PPLG', offsetX: 0),
+      ];
+    }
+    
+    // DEFAULT / KATEGORI LAIN
     return [
       _buildChapterHeader('Materi Belajar ${widget.title}'),
       const SizedBox(height: 30),
-      _buildNode(id: '${widget.categoryId}_n1', title: 'Tahap 1', offsetX: 0),
-      _buildNode(id: '${widget.categoryId}_n2', title: 'Tahap 2', offsetX: -60),
+      _buildNode(
+        id: '${widget.categoryId}_n1',
+        title: 'Tahap 1',
+        offsetX: 0,
+      ),
+      _buildNode(
+        id: '${widget.categoryId}_n2',
+        title: 'Tahap 2',
+        offsetX: -60,
+      ),
     ];
   }
-
   Widget _buildChapterHeader(String title) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 40),

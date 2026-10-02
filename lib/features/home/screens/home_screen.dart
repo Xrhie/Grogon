@@ -105,7 +105,7 @@ class HomeScreen extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (context) => const RoadmapScreen(
                                   title: 'PPLG',
-                                  categoryId: 'perangkat_lunak',
+                                  categoryId: 'pplg',
                                 ),
                               ),
                             );
