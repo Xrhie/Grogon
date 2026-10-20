@@ -14,7 +14,7 @@ import '../quiz/services/progress_service.dart';
 //            (hanya untuk melihat tampilan Roadmap, tidak mengubah progres asli)
 //   false → Kondisi normal: progres dibaca dari penyimpanan lokal
 // ─────────────────────────────────────────────────────────────────────────────
-const bool _kDebugUnlockAllNodes = true;
+const bool _kDebugUnlockAllNodes = false;
 
 enum NodeState { completed, current, locked }
 
